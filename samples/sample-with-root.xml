@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Logs>
+  <LogData>
+    <ConversationId>bf911821-3c35-41be-a100-f2e91926a2c9</ConversationId>
+    <SeverityLevel>Error</SeverityLevel>
+    <Time>2026-05-06T19:53:15.6720588+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <ComponentName />
+    <TypeName>E:\vNextBuilds\Platform24.1-Net8Dev\Build\6\s\Platform\UIShell.cs</TypeName>
+    <Operation>HandleException</Operation>
+    <LogMessage>Exception Message ='DomainUnload event called. There are no context policies.', Stack Trace :System.Exception: UIShell_defaultDomain_ProcessExit at UIShell.Program.OnDomainUnload(Object sender, EventArgs e)</LogMessage>
+    <ProcessId>25816</ProcessId>
+    <ManagedThreadId>2</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>UIShell.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+  </LogData>
+  <LogData>
+    <ConversationId>aedae751-68dc-49ee-926b-5c48235b8569</ConversationId>
+    <SeverityLevel>Error</SeverityLevel>
+    <Time>2026-05-06T19:53:31.3599172+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <ComponentName />
+    <TypeName>E:\vNextBuilds\Platform24.1-Net8Dev\Build\6\s\Platform\UIShell.cs</TypeName>
+    <Operation>HandleException</Operation>
+    <LogMessage>Exception Message ='DomainUnload event called. There are no context policies.', Stack Trace :System.Exception: UIShell_defaultDomain_ProcessExit</LogMessage>
+    <ProcessId>8480</ProcessId>
+    <ManagedThreadId>2</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>UIShell.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+  </LogData>
+  <LogData>
+    <ConversationId>11111111-2222-3333-4444-555555555555</ConversationId>
+    <SeverityLevel>Warning</SeverityLevel>
+    <Time>2026-05-06T20:01:00.0000000+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <Operation>StartupCheck</Operation>
+    <LogMessage>Configuration entry 'CacheSize' fell back to default value (256MB).</LogMessage>
+    <ProcessId>8480</ProcessId>
+    <ManagedThreadId>1</ManagedThreadId>
+    <AppDomainName>UIShell.exe</AppDomainName>
+  </LogData>
+  <LogData>
+    <ConversationId>66666666-7777-8888-9999-000000000000</ConversationId>
+    <SeverityLevel>Info</SeverityLevel>
+    <Time>2026-05-06T20:02:11.4500000+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <Operation>UserSignIn</Operation>
+    <LogMessage>User session opened for prasannakumar@example.com.</LogMessage>
+    <ProcessId>8480</ProcessId>
+    <ManagedThreadId>5</ManagedThreadId>
+    <AppDomainName>UIShell.exe</AppDomainName>
+  </LogData>
+</Logs>

@@ -1,0 +1,16 @@
+<LogData>
+    <ConversationId>aaaa-bbbb-cccc</ConversationId>
+    <SeverityLevel>Error</SeverityLevel>
+    <Time>2026-05-06T19:53:15</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <Operation>HandleException</Operation>
+    <LogMessage>Bad entry: missing closing tag below to test resilience.
+</LogData>
+<LogData>
+    <ConversationId>good-entry-1</ConversationId>
+    <SeverityLevel>Warning</SeverityLevel>
+    <Time>2026-05-06T19:54:00</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <Operation>HealthCheck</Operation>
+    <LogMessage>Disk usage above 80%.</LogMessage>
+</LogData>

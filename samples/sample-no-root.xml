@@ -1,0 +1,39 @@
+<LogData>
+    <ConversationId>bf911821-3c35-41be-a100-f2e91926a2c9</ConversationId>
+    <SeverityLevel>Error</SeverityLevel>
+    <Time>2026-05-06T19:53:15.6720588+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <TypeName>E:\vNextBuilds\Platform24.1-Net8Dev\Build\6\s\Platform\UIShell.cs</TypeName>
+    <Operation>HandleException</Operation>
+    <LogMessage>Exception Message ='DomainUnload event called. There are no context policies.', Stack Trace :System.Exception: UIShell_defaultDomain_ProcessExit</LogMessage>
+    <ProcessId>25816</ProcessId>
+    <ManagedThreadId>2</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>UIShell.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+</LogData>
+<LogData>
+    <ConversationId>aedae751-68dc-49ee-926b-5c48235b8569</ConversationId>
+    <SeverityLevel>Error</SeverityLevel>
+    <Time>2026-05-06T19:53:31.3599172+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <TypeName>E:\vNextBuilds\Platform24.1-Net8Dev\Build\6\s\Platform\UIShell.cs</TypeName>
+    <Operation>HandleException</Operation>
+    <LogMessage>Exception Message ='DomainUnload event called. There are no context policies.'</LogMessage>
+    <ProcessId>8480</ProcessId>
+    <ManagedThreadId>2</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>UIShell.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+</LogData>
+<LogData>
+    <ConversationId>22222222-2222-2222-2222-222222222222</ConversationId>
+    <SeverityLevel>Debug</SeverityLevel>
+    <Time>2026-05-06T20:05:00+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <Operation>CacheRefresh</Operation>
+    <LogMessage>Cache refreshed in 42ms.</LogMessage>
+    <ProcessId>8480</ProcessId>
+    <ManagedThreadId>11</ManagedThreadId>
+    <AppDomainName>UIShell.exe</AppDomainName>
+</LogData>

@@ -1,0 +1,47 @@
+# Build outputs
+**/bin/
+**/obj/
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+out/
+publish/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio / IDE
+.vs/
+.vscode/
+.idea/
+*.rsuser
+
+# NuGet / packages
+*.nuget.props
+*.nuget.targets
+project.lock.json
+*.nuget.cache
+
+# Test / logs
+[Tt]est[Rr]esult*/
+*.log
+
+# Runtime data (generated on server)
+App_Data/
+**/App_Data/
+
+# Local secrets / overrides — copy from appsettings.json and adjust paths
+appsettings.Development.json
+appsettings.*.local.json
+
+# Vendored assets (optional — README explains CDN fallback)
+src/XmlLogAnalyzer.Web/wwwroot/lib/bootstrap/
+src/XmlLogAnalyzer.Web/wwwroot/lib/bootstrap-icons/
+
+# OS
+Thumbs.db
+Desktop.ini
+*.DS_Store

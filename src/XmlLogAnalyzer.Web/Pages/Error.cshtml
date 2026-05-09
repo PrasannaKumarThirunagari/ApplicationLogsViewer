@@ -1,0 +1,11 @@
+@page
+@model ErrorModel
+@{
+    ViewData["Title"] = "Error";
+}
+<div class="container py-4">
+    <h2 class="text-danger"><i class="bi bi-exclamation-triangle"></i> Something went wrong</h2>
+    <p class="text-secondary">An unexpected error occurred. Please try again or refresh the page.</p>
+    <p class="small text-secondary">Request ID: <code>@Model.RequestId</code></p>
+    <a class="btn btn-primary" href="/">Back to Explorer</a>
+</div>

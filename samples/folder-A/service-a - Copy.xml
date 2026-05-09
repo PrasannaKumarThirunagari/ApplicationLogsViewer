@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Logs>
+  <LogData>
+    <ConversationId>aaaaaaa1-1111-1111-1111-111111111111</ConversationId>
+    <SeverityLevel>Error</SeverityLevel>
+    <Time>2026-05-09T08:15:42.1230000+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <ComponentName>OrderService</ComponentName>
+    <TypeName>E:\Apps\OrderService\Worker.cs</TypeName>
+    <Operation>ProcessOrder</Operation>
+    <LogMessage>Exception Message ='Database connection timeout while processing order #45821.', Stack Trace :System.Data.SqlClient.SqlException: Timeout expired at OrderService.Worker.ProcessOrderAsync(Int64 id)</LogMessage>
+    <ProcessId>12044</ProcessId>
+    <ManagedThreadId>7</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>OrderService.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+  </LogData>
+  <LogData>
+    <ConversationId>aaaaaaa2-2222-2222-2222-222222222222</ConversationId>
+    <SeverityLevel>Warning</SeverityLevel>
+    <Time>2026-05-09T08:14:11.4560000+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <ComponentName>OrderService</ComponentName>
+    <TypeName>E:\Apps\OrderService\Cache.cs</TypeName>
+    <Operation>RefreshCache</Operation>
+    <LogMessage>Cache hit ratio dropped below 70% threshold (current: 64.2%).</LogMessage>
+    <ProcessId>12044</ProcessId>
+    <ManagedThreadId>3</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>OrderService.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+  </LogData>
+ <LogData>
+    <ConversationId>aaaaaaa2-2222-2222-2222-222222222222111</ConversationId>
+    <SeverityLevel>Warning</SeverityLevel>
+    <Time>2026-05-09T08:14:11.4560000+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <ComponentName>OrderService</ComponentName>
+    <TypeName>E:\Apps\OrderService\Cache.cs</TypeName>
+    <Operation>RefreshCache</Operation>
+    <LogMessage>Cache hit ratio dropped below 70% threshold (current: 64.2%).</LogMessage>
+    <ProcessId>12044</ProcessId>
+    <ManagedThreadId>3</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>OrderService.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+  </LogData>
+ <LogData>
+    <ConversationId>aaaaaaa2-2222-2222-2222-222222222222122211</ConversationId>
+    <SeverityLevel>Error</SeverityLevel>
+    <Time>2026-05-09T08:14:11.4560000+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <ComponentName>OrderService</ComponentName>
+    <TypeName>E:\Apps\OrderService\Cache.cs</TypeName>
+    <Operation>RefreshCache</Operation>
+    <LogMessage>Cache hit ratio dropped below 70% threshold (current: 64.2%).</LogMessage>
+    <ProcessId>12044</ProcessId>
+    <ManagedThreadId>3</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>OrderService.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+  </LogData>
+	<LogData>
+    <ConversationId>aaaaaaa2-2222-2222-2222-222222222222122211</ConversationId>
+    <SeverityLevel>Error</SeverityLevel>
+    <Time>2026-05-09T08:14:11.4560000+05:30</Time>
+    <MachineName>VDI-PRAS-194</MachineName>
+    <ComponentName>OrderService</ComponentName>
+    <TypeName>E:\Apps\OrderService\Cache.cs</TypeName>
+    <Operation>RefreshCache</Operation>
+    <LogMessage>Cache hit ratio dropped below 70% threshold (current: 64.2%).</LogMessage>
+    <ProcessId>12044</ProcessId>
+    <ManagedThreadId>3</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>OrderService.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+  </LogData>
+</Logs>

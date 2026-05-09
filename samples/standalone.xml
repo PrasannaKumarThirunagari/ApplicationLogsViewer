@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Logs>
+  <LogData>
+    <ConversationId>ccccccc1-1111-1111-1111-111111111111</ConversationId>
+    <SeverityLevel>Debug</SeverityLevel>
+    <Time>2026-05-09T07:45:01.3400000+05:30</Time>
+    <MachineName>VDI-PRAS-220</MachineName>
+    <ComponentName>StandaloneJob</ComponentName>
+    <TypeName>E:\Apps\Jobs\Cleanup.cs</TypeName>
+    <Operation>RunCleanup</Operation>
+    <LogMessage>Removed 412 expired temp files (138.4 MB freed).</LogMessage>
+    <ProcessId>4408</ProcessId>
+    <ManagedThreadId>1</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>StandaloneJob.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+  </LogData>
+  <LogData>
+    <ConversationId>ccccccc2-2222-2222-2222-222222222222</ConversationId>
+    <SeverityLevel>Warning</SeverityLevel>
+    <Time>2026-05-09T07:46:55.0000000+05:30</Time>
+    <MachineName>VDI-PRAS-220</MachineName>
+    <ComponentName>StandaloneJob</ComponentName>
+    <TypeName>E:\Apps\Jobs\Cleanup.cs</TypeName>
+    <Operation>VerifyDisk</Operation>
+    <LogMessage>Disk D: free space at 12% — consider archiving old logs.</LogMessage>
+    <ProcessId>4408</ProcessId>
+    <ManagedThreadId>1</ManagedThreadId>
+    <AppDomainID>1</AppDomainID>
+    <AppDomainName>StandaloneJob.exe</AppDomainName>
+    <stkFrame>0</stkFrame>
+  </LogData>
+</Logs>

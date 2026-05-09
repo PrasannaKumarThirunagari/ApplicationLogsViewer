@@ -1,0 +1,30 @@
+<LogData>
+  <ConversationId>bbbbbbb1-1111-1111-1111-111111111111</ConversationId>
+  <SeverityLevel>Info</SeverityLevel>
+  <Time>2026-05-09T09:02:00.0000000+05:30</Time>
+  <MachineName>VDI-PRAS-200</MachineName>
+  <ComponentName>AuthService</ComponentName>
+  <TypeName>E:\Apps\AuthService\LoginHandler.cs</TypeName>
+  <Operation>UserSignIn</Operation>
+  <LogMessage>User session opened for prasannakumar@example.com.</LogMessage>
+  <ProcessId>9821</ProcessId>
+  <ManagedThreadId>5</ManagedThreadId>
+  <AppDomainID>1</AppDomainID>
+  <AppDomainName>AuthService.exe</AppDomainName>
+  <stkFrame>0</stkFrame>
+</LogData>
+<LogData>
+  <ConversationId>bbbbbbb2-2222-2222-2222-222222222222</ConversationId>
+  <SeverityLevel>Warning</SeverityLevel>
+  <Time>2026-05-09T09:05:33.7820000+05:30</Time>
+  <MachineName>VDI-PRAS-200</MachineName>
+  <ComponentName>AuthService</ComponentName>
+  <TypeName>E:\Apps\AuthService\TokenValidator.cs</TypeName>
+  <Operation>ValidateToken</Operation>
+  <LogMessage>Exception Message ='Invalid signature on JWT.', Stack Trace :System.Security.SecurityException: Token validation failed at AuthService.TokenValidator.Validate(String token)</LogMessage>
+  <ProcessId>9821</ProcessId>
+  <ManagedThreadId>11</ManagedThreadId>
+  <AppDomainID>1</AppDomainID>
+  <AppDomainName>AuthService.exe</AppDomainName>
+  <stkFrame>0</stkFrame>
+</LogData>

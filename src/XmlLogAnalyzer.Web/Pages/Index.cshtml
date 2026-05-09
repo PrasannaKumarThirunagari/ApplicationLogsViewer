@@ -1,0 +1,178 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Explorer";
+}
+
+<div class="explorer-shell">
+    <!-- LEFT: folder tree + file list -->
+    <aside class="explorer-side">
+        <div class="side-section">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-folder2-open"></i>
+                <strong>Folders</strong>
+                <button class="btn btn-sm btn-outline-secondary ms-auto" id="btn-refresh-roots" title="Refresh roots">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+            <div class="input-group input-group-sm mb-2">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input id="folderFilter" class="form-control" placeholder="Filter folders..." />
+            </div>
+            <div class="form-check form-switch small mb-2">
+                <input class="form-check-input" type="checkbox" id="recursiveTree" checked />
+                <label class="form-check-label" for="recursiveTree">Recursive</label>
+            </div>
+            <select id="rootDropdown" class="form-select form-select-sm mb-2"></select>
+            <div id="folderTree" class="folder-tree"></div>
+        </div>
+
+        <div class="side-section side-favs">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-star-fill text-warning"></i><strong>Favorites</strong>
+            </div>
+            <ul id="favList" class="path-list small"></ul>
+        </div>
+
+        <div class="side-section side-recent">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-clock-history"></i><strong>Recently viewed</strong>
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-auto px-2 py-0 lh-lg" id="btn-clear-recent"
+                        disabled title="Clear recently viewed files">
+                    <i class="bi bi-x-lg"></i><span class="visually-hidden"> Clear recent</span>
+                </button>
+            </div>
+            <ul id="recentList" class="path-list small"></ul>
+        </div>
+    </aside>
+
+    <!-- CENTER + RIGHT: files + log grid (shown when a file is opened) -->
+    <section class="explorer-main">
+        <header class="files-header">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <i class="bi bi-files"></i>
+                <strong id="currentFolder" class="text-truncate">No folder selected</strong>
+                <span class="badge text-bg-secondary" id="fileCount">0 files</span>
+                <span class="ms-auto"></span>
+                <div class="input-group input-group-sm" style="max-width:280px">
+                    <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+                    <input id="fileFilter" class="form-control" placeholder="Search files..." />
+                </div>
+                <select id="fileSort" class="form-select form-select-sm" style="max-width:200px">
+                    <option value="modified-desc" selected>Latest modified first</option>
+                    <option value="modified-asc">Oldest first</option>
+                    <option value="name-asc">Name A→Z</option>
+                    <option value="name-desc">Name Z→A</option>
+                    <option value="size-desc">Largest first</option>
+                </select>
+                <button class="btn btn-sm btn-outline-primary" type="button" id="btn-reload-folder" disabled
+                        title="Refresh the file list and drop cached parses for every log file in this folder (then pick a file for latest XML)">
+                    <i class="bi bi-arrow-clockwise"></i> Reload folder
+                </button>
+            </div>
+        </header>
+
+        <div class="files-list-wrap">
+            <table class="table table-sm table-hover files-list-table">
+                <thead>
+                    <tr>
+                        <th style="width:40%">Name</th>
+                        <th class="text-end" style="width:12%">Size</th>
+                        <th style="width:18%">Last modified</th>
+                        <th class="text-end" style="width:10%">Entries</th>
+                        <th class="text-end" style="width:8%">Errors</th>
+                        <th class="text-end" style="width:8%">Warnings</th>
+                        <th style="width:4%"></th>
+                    </tr>
+                </thead>
+                <tbody id="filesBody"></tbody>
+            </table>
+        </div>
+
+        <!-- ====== LOG VIEWER ====== -->
+        <div id="logViewer" class="log-viewer d-none">
+            <header class="log-viewer-header">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <i class="bi bi-journal-code"></i>
+                    <strong id="openedFile" class="text-truncate"></strong>
+                    <span class="ms-auto"></span>
+                    <button type="button" id="btn-reload-file-header" class="btn btn-sm btn-outline-primary"
+                            title="Reload this file from disk (clears server cache)">
+                        <i class="bi bi-arrow-clockwise"></i> Reload file
+                    </button>
+                    <button type="button" id="btn-close-viewer" class="btn btn-sm btn-outline-secondary" title="Close">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <ul class="nav nav-tabs view-tabs mt-2" role="tablist">
+                    <li class="nav-item"><a class="nav-link active" data-view="grid" href="#">Grid</a></li>
+                    <li class="nav-item"><a class="nav-link" data-view="raw" href="#">Raw XML</a></li>
+                    <li class="nav-item"><a class="nav-link" data-view="pretty" href="#">Pretty XML</a></li>
+                    <li class="nav-item"><a class="nav-link" data-view="tree" href="#">Tree</a></li>
+                    <li class="nav-item"><a class="nav-link" data-view="json" href="#">JSON</a></li>
+                </ul>
+            </header>
+
+            <!-- Stats / dashboard strip -->
+            <div class="stats-strip" id="statsStrip"></div>
+
+            <!-- Sticky filters -->
+            <div class="filters-row sticky-top">
+                <input id="globalSearch" class="form-control form-control-sm" placeholder="Global search (multi-keyword, case-insensitive)..." />
+                <select id="severityFilter" class="form-select form-select-sm">
+                    <option value="">All severity</option>
+                    <option value="Error">Error</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Info">Info</option>
+                    <option value="Debug">Debug</option>
+                </select>
+                <input id="fromDate"      class="form-control form-control-sm" type="datetime-local" />
+                <input id="toDate"        class="form-control form-control-sm" type="datetime-local" />
+                <button class="btn btn-sm btn-primary" id="btn-apply-filters"><i class="bi bi-funnel-fill"></i> Apply</button>
+                <button class="btn btn-sm btn-outline-secondary" id="btn-clear-filters">Clear</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="btn-reload-log"
+                        title="Reload this file from disk (clears server cache and refreshes the grid)">
+                    <i class="bi bi-arrow-clockwise"></i> Reload file
+                </button>
+            </div>
+
+            <!-- VIEWS -->
+            <div class="view-pane" id="view-grid">
+                <div class="grid-wrap">
+                    <table class="table table-sm log-grid">
+                        <thead id="gridHead"></thead>
+                        <tbody id="gridBody"></tbody>
+                    </table>
+                </div>
+                <div class="pager">
+                    <div class="small text-secondary" id="pagerInfo"></div>
+                    <div class="ms-auto btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" id="btn-prev-page"><i class="bi bi-chevron-left"></i></button>
+                        <button class="btn btn-outline-secondary" id="btn-next-page"><i class="bi bi-chevron-right"></i></button>
+                    </div>
+                    <select id="pageSize" class="form-select form-select-sm ms-2" style="width:auto">
+                        <option>50</option><option selected>100</option><option>250</option>
+                        <option>500</option><option>1000</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="view-pane d-none" id="view-raw">
+                <pre class="raw-pane" id="rawPane">Select an entry from the grid to view its raw XML.</pre>
+            </div>
+            <div class="view-pane d-none" id="view-pretty">
+                <pre class="raw-pane" id="prettyPane">Select an entry from the grid for formatted XML.</pre>
+            </div>
+            <div class="view-pane d-none" id="view-tree">
+                <div class="raw-pane" id="treePane">Select an entry from the grid.</div>
+            </div>
+            <div class="view-pane d-none" id="view-json">
+                <pre class="raw-pane" id="jsonPane">Select an entry from the grid for JSON.</pre>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/explorer.js" asp-append-version="true"></script>
+}
