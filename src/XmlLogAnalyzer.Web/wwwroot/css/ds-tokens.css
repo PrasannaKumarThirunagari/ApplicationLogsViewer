@@ -32,12 +32,12 @@
     --space-10: 2.5rem;
     --space-12: 3rem;
 
-    /* ——— Radius ——— */
-    --r-sm: 10px;
-    --r-md: 14px;
-    --r-lg: 18px;
-    --r-xl: 22px;
-    --r-2xl: 28px;
+    /* ——— Radius (editor / workspace: restrained corners) ——— */
+    --r-sm: 6px;
+    --r-md: 8px;
+    --r-lg: 10px;
+    --r-xl: 12px;
+    --r-2xl: 16px;
     --r-pill: 9999px;
 
     /* ——— Typography scale ——— */
@@ -71,11 +71,17 @@
     --dur-normal: 250ms;
     --dur-slow: 350ms;
 
-    --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.35);
-    --focus-ring-inset: inset 0 0 0 2px rgba(79, 70, 229, 0.5);
+    --focus-ring: 0 0 0 2px rgba(24, 24, 27, 0.25);
+    --focus-ring-inset: inset 0 0 0 2px rgba(24, 24, 27, 0.35);
+    --focus-ring-accent: 0 0 0 2px rgba(79, 70, 229, 0.35);
 
     /* App structure */
-    --header-h: 58px;
+    --header-h: 56px;
+
+    /* Density tuned for log reading (overridable) */
+    --app-body-size: 0.9375rem;
+    --grid-cell-size: 0.8125rem;
+    --grid-header-size: 0.6875rem;
 
     /* Legacy aliases consumed by site.css */
     --radius-card: var(--r-xl);
@@ -83,50 +89,55 @@
     --radius-soft: var(--r-md);
 }
 
-/* ——— Light ——— */
+/* ——— Light — workspace editor (#F9F9F9 canvas, hairline borders, neutral chrome) ——— */
 [data-theme="light"] {
-    --canvas: #f8fafc;
+    --canvas: #f9f9f9;
     --surface: #ffffff;
     --surface-raised: #ffffff;
-    --surface-muted: #f1f5f9;
-    --text-primary: #0f172a;
-    --text-secondary: #64748b;
-    --text-tertiary: #94a3b8;
-    --border-subtle: rgba(15, 23, 42, 0.06);
-    --border-default: #e2e8f0;
-    --border-strong: #cbd5e1;
+    --surface-muted: #f4f4f5;
+    --text-primary: #18181b;
+    --text-secondary: #52525b;
+    --text-tertiary: #71717a;
+    --border-subtle: rgba(24, 24, 27, 0.06);
+    --border-default: #e4e4e7;
+    --border-strong: #d4d4d8;
 
-    --accent: var(--color-indigo-500);
-    --accent-hover: var(--color-indigo-600);
-    --accent-muted: rgba(79, 70, 229, 0.1);
-    --accent-glow: 0 8px 24px rgba(79, 70, 229, 0.22);
+    /* Neutral primary chrome; indigo reserved for sparse emphasis */
+    --accent: #18181b;
+    --accent-hover: #27272a;
+    --accent-muted: #f4f4f5;
+    --accent-glow: none;
 
     --glass-bg: rgba(255, 255, 255, 0.72);
     --glass-border: rgba(255, 255, 255, 0.6);
     --header-backdrop: blur(20px) saturate(1.8);
 
-    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.06);
-    --shadow-md: 0 4px 8px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.08);
-    --shadow-lg: 0 12px 40px rgba(15, 23, 42, 0.12);
-    --shadow-float: 0 0 0 1px var(--border-subtle), var(--shadow-md);
+    --shadow-xs: 0 1px 0 rgba(24, 24, 27, 0.04);
+    --shadow-sm: 0 2px 8px rgba(24, 24, 27, 0.06);
+    --shadow-md: 0 4px 16px rgba(24, 24, 27, 0.08);
+    --shadow-lg: 0 12px 40px rgba(24, 24, 27, 0.1);
+    --shadow-float: 0 1px 3px rgba(24, 24, 27, 0.06);
 
-    --row-alt: #f8fafc;
-    --row-hover: rgba(79, 70, 229, 0.06);
+    --row-alt: #fafafa;
+    --row-hover: rgba(24, 24, 27, 0.045);
+    --grid-stripe: #f9f9f9;
 
-    /* Sidebar (light: floating card) */
+    --nav-active-bg: #f4f4f5;
+    --nav-accent-bar: #18181b;
+
+    /* Sidebar */
     --sidebar-bg: var(--surface);
     --sidebar-fg: var(--text-primary);
     --sidebar-muted: var(--text-secondary);
     --sidebar-line: var(--border-default);
-    --sidebar-input-bg: #f8fafc;
-    --sidebar-tree-bg: #f1f5f9;
+    --sidebar-input-bg: #fafafa;
+    --sidebar-tree-bg: #f4f4f5;
 
     /* ——— Legacy token bridge ——— */
     --app-canvas: var(--canvas);
     --surface-elevated: var(--surface-raised);
     --fg-0: var(--text-primary);
-    --fg-1: #334155;
+    --fg-1: #27272a;
     --fg-2: var(--text-secondary);
     --border: var(--border-default);
     --shadow-md: var(--shadow-float);
@@ -166,8 +177,11 @@
     --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.45);
     --shadow-float: 0 0 0 1px var(--border-subtle), var(--shadow-md);
 
-    --row-alt: rgba(255, 255, 255, 0.03);
-    --row-hover: rgba(129, 140, 248, 0.1);
+    --row-alt: rgba(255, 255, 255, 0.04);
+    --row-hover: rgba(129, 140, 248, 0.12);
+    --grid-stripe: rgba(255, 255, 255, 0.04);
+
+    --nav-accent-bar: #fafafa;
 
     --sidebar-bg: linear-gradient(180deg, #111827 0%, #0b1220 100%);
     --sidebar-fg: rgba(248, 250, 252, 0.94);
@@ -179,7 +193,7 @@
     --app-canvas: var(--canvas);
     --surface-elevated: var(--surface-raised);
     --fg-0: var(--text-primary);
-    --fg-1: #cbd5e1;
+    --fg-1: #e2e8f0;
     --fg-2: var(--text-secondary);
     --border: var(--border-default);
     --shadow-md: var(--shadow-float);

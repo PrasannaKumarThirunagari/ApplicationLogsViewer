@@ -22,11 +22,17 @@
                 <input id="folderFilter" class="form-control" placeholder="Filter folders..." />
             </div>
             <div class="form-check form-switch small mb-2">
-                <input class="form-check-input" type="checkbox" id="recursiveTree" checked />
-                <label class="form-check-label" for="recursiveTree">Recursive</label>
+                <input class="form-check-input" type="checkbox" id="recursiveTree" />
+                <label class="form-check-label" for="recursiveTree" title="When on, loading a folder includes log files from subfolders (for cache reload). The tree always shows all folders.">Include subfolders when loading folder</label>
             </div>
             <select id="rootDropdown" class="form-select form-select-sm mb-2"></select>
-            <div id="folderTree" class="folder-tree"></div>
+            <button class="btn btn-sm btn-outline-secondary w-100 mb-2" type="button" id="btn-reload-folder" disabled
+                    title="Refresh caches for every log file in the selected folder">
+                <i class="bi bi-arrow-clockwise"></i> Reload folder cache
+            </button>
+            <div class="side-tree-scroll" role="region" aria-label="Folder tree">
+                <div id="folderTree" class="folder-tree"></div>
+            </div>
         </div>
 
         <div class="side-section side-favs">
@@ -34,7 +40,9 @@
             <div class="d-flex align-items-center gap-2 mb-2">
                 <i class="bi bi-star-fill side-icon text-warning"></i><strong class="side-heading">Favorites</strong>
             </div>
-            <ul id="favList" class="path-list small"></ul>
+            <div class="path-list-scroll">
+                <ul id="favList" class="path-list small"></ul>
+            </div>
         </div>
 
         <div class="side-section side-recent">
@@ -45,51 +53,21 @@
                     <i class="bi bi-x-lg"></i><span class="visually-hidden"> Clear recent</span>
                 </button>
             </div>
-            <ul id="recentList" class="path-list small"></ul>
+            <div class="path-list-scroll">
+                <ul id="recentList" class="path-list small"></ul>
+            </div>
         </div>
     </aside>
 
-    <!-- CENTER + RIGHT: files + log grid (shown when a file is opened) -->
+    <!-- Main: log viewer only (pick files from the sidebar tree) -->
     <section class="explorer-main">
         <div class="explorer-stack">
-        <div class="surface-card files-panel" id="filesPanel">
-        <header class="files-header card-toolbar">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <span class="toolbar-icon-wrap" aria-hidden="true"><i class="bi bi-files"></i></span>
-                <strong id="currentFolder" class="text-truncate toolbar-title">No folder selected</strong>
-                <span class="badge rounded-pill app-badge-soft" id="fileCount">0 files</span>
-                <span class="ms-auto"></span>
-                <div class="input-group input-group-sm" style="max-width:280px">
-                    <span class="input-group-text"><i class="bi bi-funnel"></i></span>
-                    <input id="fileFilter" class="form-control" placeholder="Search files..." />
-                </div>
-                <select id="fileSort" class="form-select form-select-sm" style="max-width:200px">
-                    <option value="modified-desc" selected>Latest modified first</option>
-                    <option value="modified-asc">Oldest first</option>
-                    <option value="name-asc">Name A→Z</option>
-                    <option value="name-desc">Name Z→A</option>
-                    <option value="size-desc">Largest first</option>
-                </select>
-                <button class="btn btn-sm btn-outline-primary" type="button" id="btn-reload-folder" disabled
-                        title="Refresh the file list and drop cached parses for every log file in this folder (then pick a file for latest XML)">
-                    <i class="bi bi-arrow-clockwise"></i> Reload folder
-                </button>
+        <div id="explorerEmpty" class="surface-card explorer-empty-hint">
+            <div class="explorer-empty-hint-inner">
+                <span class="toolbar-icon-wrap" aria-hidden="true"><i class="bi bi-folder2-open"></i></span>
+                <p class="explorer-empty-title">No log file open</p>
+                <p class="explorer-empty-sub text-secondary mb-0">Expand a folder in the sidebar and click a log file, or use Favorites / Recently viewed.</p>
             </div>
-        </header>
-
-        <div class="files-list-wrap table-responsive">
-            <table class="table table-sm table-hover files-list-table mb-0">
-                <thead>
-                    <tr>
-                        <th style="width:52%">Name</th>
-                        <th class="text-end" style="width:14%">Size</th>
-                        <th style="width:30%">Last modified</th>
-                        <th class="text-end" style="width:2.5rem" aria-label="Favorite"></th>
-                    </tr>
-                </thead>
-                <tbody id="filesBody"></tbody>
-            </table>
-        </div>
         </div>
 
         <!-- ====== LOG VIEWER ====== -->

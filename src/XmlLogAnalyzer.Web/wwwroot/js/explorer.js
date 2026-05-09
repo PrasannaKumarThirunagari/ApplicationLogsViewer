@@ -59,11 +59,10 @@
         $("btn-reload-folder").addEventListener("click", reloadFolderFromDisk);
         $("btn-clear-recent").addEventListener("click", clearRecentPaths);
         $("rootDropdown").addEventListener("change", (e) => loadTree(e.target.value));
-        $("recursiveTree").addEventListener("change", () => state.selectedRoot && loadTree(state.selectedRoot));
+        $("recursiveTree").addEventListener("change", () => {
+            if (state.currentFolder) loadFiles(state.currentFolder);
+        });
         $("folderFilter").addEventListener("input", filterTree);
-
-        $("fileFilter").addEventListener("input", renderFiles);
-        $("fileSort").addEventListener("change", renderFiles);
 
         $("btn-close-viewer").addEventListener("click", closeViewer);
         document.querySelectorAll(".view-tabs .nav-link").forEach(a => {
@@ -84,17 +83,28 @@
         $("btn-reload-log").addEventListener("click", reloadOpenFileFromDisk);
         $("btn-reload-file-header").addEventListener("click", reloadOpenFileFromDisk);
 
-        // keyboard shortcuts
+        // keyboard shortcuts — use capture so we run before Bootstrap removes .modal.show on Escape
         document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && !$("logViewer").classList.contains("d-none")) {
-                e.preventDefault();
-                closeViewer();
+            if (e.key !== "Escape") {
+                if (e.key === "/" && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {
+                    e.preventDefault();
+                    $("globalSearch").focus();
+                }
                 return;
             }
-            if (e.key === "/" && !["INPUT","TEXTAREA","SELECT"].includes(document.activeElement.tagName)) {
-                e.preventDefault(); $("globalSearch").focus();
+            // While any Bootstrap modal is open, only dismiss the modal (never close the log viewer).
+            if (
+                document.body.classList.contains("modal-open")
+                || document.querySelector(".modal.show")
+                || e.target && typeof e.target.closest === "function" && e.target.closest(".modal.show")
+            ) {
+                return;
             }
-        });
+            if (!$("logViewer").classList.contains("d-none")) {
+                e.preventDefault();
+                closeViewer();
+            }
+        }, true);
     }
 
     // ---------- Folders ----------
@@ -136,9 +146,8 @@
 
     async function loadTree(root) {
         state.selectedRoot = root;
-        const recursive = $("recursiveTree").checked;
         try {
-            const tree = await xla.api(`/api/folders/tree?path=${encodeURIComponent(root)}&recursive=${recursive}`);
+            const tree = await xla.api(`/api/folders/tree?path=${encodeURIComponent(root)}&recursive=true`);
             renderTree(tree);
         } catch (err) {
             xla.toast(err.message, "error");
@@ -160,43 +169,119 @@
         row.style.paddingLeft = (depth * 14) + "px";
         row.dataset.fullpath = node.fullPath;
 
-        const hasChildren = node.children && node.children.length > 0;
-        const caret = hasChildren ? "▸" : "·";
-        row.innerHTML = `<span class="caret">${caret}</span><i class="bi bi-folder text-warning"></i> ${xla.esc(node.name)}
-            <small class="text-secondary ms-1">(${node.fileCount || 0})</small>`;
+        const hasSubfolders = !!(node.children && node.children.length > 0);
+        const nFiles = node.fileCount || 0;
+        const hasFiles = nFiles > 0;
+        const expandable = hasSubfolders || hasFiles;
+
+        const caretSym = expandable ? "▸" : "·";
+        row.innerHTML = `<span class="caret caret-btn" role="${expandable ? "button" : "presentation"}" tabindex="${expandable ? "0" : "-1"}" aria-expanded="false" title="${expandable ? "Expand or collapse" : ""}">${caretSym}</span><i class="bi bi-folder text-warning"></i> <span class="folder-node-label">${xla.esc(node.name)}</span>
+            <small class="text-secondary ms-1">(${nFiles})</small>`;
+
         row.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const childWrap = wrap.querySelector(".folder-children");
-            if (childWrap) {
-                childWrap.classList.toggle("d-none");
-                const c = row.querySelector(".caret");
-                c.textContent = childWrap.classList.contains("d-none") ? "▸" : "▾";
-            }
+            if (e.target.closest(".caret-btn")) return;
             onSelectFolder(node.fullPath);
         });
-        wrap.appendChild(row);
 
-        if (hasChildren) {
-            const c = document.createElement("div");
-            c.className = "folder-children d-none";
-            node.children.forEach(ch => c.appendChild(renderNode(ch, depth + 1)));
-            wrap.appendChild(c);
+        const childWrap = document.createElement("div");
+        childWrap.className = "folder-children d-none";
+
+        const fileSlot = document.createElement("div");
+        fileSlot.className = "folder-tree-files";
+        childWrap.appendChild(fileSlot);
+
+        if (hasSubfolders) {
+            node.children.forEach(ch => childWrap.appendChild(renderNode(ch, depth + 1)));
+        }
+
+        if (expandable) {
+            const caretEl = row.querySelector(".caret-btn");
+            const toggle = async (e) => {
+                if (e) { e.stopPropagation(); e.preventDefault(); }
+                const hidden = childWrap.classList.contains("d-none");
+                if (hidden) {
+                    childWrap.classList.remove("d-none");
+                    caretEl.textContent = "▾";
+                    caretEl.setAttribute("aria-expanded", "true");
+                    if (!fileSlot.dataset.loaded) {
+                        await loadFilesIntoTreeSlot(node.fullPath, fileSlot);
+                        fileSlot.dataset.loaded = "1";
+                    }
+                } else {
+                    childWrap.classList.add("d-none");
+                    caretEl.textContent = "▸";
+                    caretEl.setAttribute("aria-expanded", "false");
+                }
+            };
+            caretEl.addEventListener("click", toggle);
+            caretEl.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    toggle(e);
+                }
+            });
+        }
+
+        wrap.appendChild(row);
+        if (expandable) {
+            wrap.appendChild(childWrap);
         }
         return wrap;
     }
 
+    /** Log files in this folder (non-recursive), shown under the tree row when expanded. */
+    async function loadFilesIntoTreeSlot(folderPath, slot) {
+        slot.innerHTML = `<div class="folder-tree-file-loading small text-secondary px-2 py-1">Loading…</div>`;
+        try {
+            const files = await xla.api(`/api/folders/files?path=${encodeURIComponent(folderPath)}&recursive=false`);
+            slot.innerHTML = "";
+            if (!files.length) {
+                slot.innerHTML = `<div class="folder-tree-file-empty small text-secondary px-2 py-1">No log files in this folder</div>`;
+                return;
+            }
+            files.forEach(f => {
+                const div = document.createElement("div");
+                div.className = "folder-tree-file";
+                div.dataset.fullpath = f.fullPath;
+                div.innerHTML = `<i class="bi bi-file-earmark-code"></i> ${xla.esc(f.name)}`;
+                div.title = f.fullPath;
+                div.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    onSelectFile(f.fullPath);
+                });
+                slot.appendChild(div);
+            });
+        } catch (err) {
+            slot.innerHTML = `<div class="small text-danger px-2 py-1">${xla.esc(err.message)}</div>`;
+        }
+    }
+
     function filterTree() {
-        const term = $("folderFilter").value.toLowerCase();
-        document.querySelectorAll("#folderTree .folder-node").forEach(n => {
-            const t = n.textContent.toLowerCase();
-            n.parentElement.style.display = (!term || t.includes(term)) ? "" : "none";
+        const host = $("folderTree");
+        if (!host) return;
+        const term = ($("folderFilter").value || "").toLowerCase().trim();
+        const wraps = host.querySelectorAll(".folder-node-wrap");
+        if (!term) {
+            wraps.forEach(w => { w.style.display = ""; });
+            return;
+        }
+        wraps.forEach(w => { w.style.display = "none"; });
+        wraps.forEach(wrap => {
+            const block = wrap.innerText.toLowerCase();
+            const row = wrap.querySelector(":scope > .folder-node");
+            const path = (row && row.dataset.fullpath) ? row.dataset.fullpath.toLowerCase() : "";
+            if (block.includes(term) || path.includes(term)) {
+                let el = wrap;
+                while (el && el !== host) {
+                    if (el.classList && el.classList.contains("folder-node-wrap")) el.style.display = "";
+                    el = el.parentElement;
+                }
+            }
         });
     }
 
-    // ---------- Files ----------
+    // ---------- Files (state for cache reload / folder refresh; list UI is in sidebar tree) ----------
     async function onSelectFolder(path) {
         state.currentFolder = path;
-        $("currentFolder").textContent = path;
         updateFolderReloadEnabled();
         await loadFiles(path);
     }
@@ -214,12 +299,16 @@
         try {
             await xla.api("/api/folders/cache/refresh?path=" + encodeURIComponent(state.currentFolder), { method: "POST" });
             await loadFiles(state.currentFolder);
+            document.querySelectorAll(".folder-tree-files[data-loaded]").forEach((el) => {
+                delete el.dataset.loaded;
+                el.innerHTML = "";
+            });
             const viewerOpen = !$("logViewer").classList.contains("d-none");
             if (viewerOpen && state.currentFile && state.files.some((f) => pathsEqual(f.fullPath, state.currentFile))) {
                 await loadGrid();
                 if (state.selectedIndex != null && state.viewMode !== "grid") await loadEntryView(state.viewMode);
             }
-            xla.toast("Folder refreshed — file list and log caches updated.", "success");
+            xla.toast("Folder caches updated.", "success");
         } catch (err) {
             xla.toast(err.message, "error");
         } finally {
@@ -255,69 +344,31 @@
 
     async function loadFiles(path) {
         try {
-            const files = await xla.api(`/api/folders/files?path=${encodeURIComponent(path)}&recursive=false`);
+            const rec = $("recursiveTree").checked;
+            const files = await xla.api(`/api/folders/files?path=${encodeURIComponent(path)}&recursive=${rec}`);
             state.files = files;
-            renderFiles();
         } catch (err) { xla.toast(err.message, "error"); }
     }
 
-    function renderFiles() {
-        let list = state.files.slice();
-        const term = ($("fileFilter").value || "").toLowerCase();
-        if (term) list = list.filter(f => f.name.toLowerCase().includes(term) || f.fullPath.toLowerCase().includes(term));
-        const sortKey = $("fileSort").value;
-        list.sort(fileSorter(sortKey));
-
-        $("fileCount").textContent = `${list.length} file${list.length===1?"":"s"}`;
-        const body = $("filesBody");
-        body.innerHTML = "";
-        list.forEach(f => {
-            const tr = document.createElement("tr");
-            if (state.currentFile && pathsEqual(f.fullPath, state.currentFile)) {
-                tr.classList.add("is-current-file");
-                tr.setAttribute("aria-current", "true");
-            }
-            tr.innerHTML = `
-                <td class="text-truncate"><i class="bi bi-file-earmark-code"></i> ${xla.esc(f.name)}</td>
-                <td class="text-end">${xla.esc(f.sizeDisplay || xla.fmtSize(f.size))}</td>
-                <td>${xla.fmtTime(f.lastModified)}</td>
-                <td class="text-end"><i class="bi bi-star toggle-fav" title="Favorite"></i></td>`;
-            tr.addEventListener("click", () => onSelectFile(f.fullPath));
-            tr.querySelector(".toggle-fav").addEventListener("click", async (e) => {
-                e.stopPropagation();
-                await xla.api("/api/folders/favorites/add", { method: "POST", body: { path: f.fullPath } });
-                xla.toast("Added to favorites", "success");
-                loadRoots();
-            });
-            body.appendChild(tr);
-        });
-    }
-
-    function fileSorter(key) {
-        switch (key) {
-            case "modified-asc":  return (a,b) => new Date(a.lastModified) - new Date(b.lastModified);
-            case "name-asc":      return (a,b) => a.name.localeCompare(b.name);
-            case "name-desc":     return (a,b) => b.name.localeCompare(a.name);
-            case "size-desc":     return (a,b) => b.size - a.size;
-            default:              return (a,b) => new Date(b.lastModified) - new Date(a.lastModified);
-        }
+    function setMainLogOpen(open) {
+        $("logViewer").classList.toggle("d-none", !open);
+        const empty = $("explorerEmpty");
+        if (empty) empty.classList.toggle("d-none", open);
     }
 
     // ---------- Log Viewer ----------
     async function onSelectFile(path) {
         state.currentFile = path;
         $("openedFile").textContent = path;
-        $("logViewer").classList.remove("d-none");
-        renderFiles();
+        setMainLogOpen(true);
         state.page = 1;
         clearFilters({ skipLoad: true });
         await loadGrid();
     }
 
     function closeViewer() {
-        $("logViewer").classList.add("d-none");
+        setMainLogOpen(false);
         state.currentFile = null;
-        renderFiles();
     }
 
     function showView(name) {

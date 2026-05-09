@@ -26,8 +26,11 @@ public sealed class FolderService : IFolderService
 
     public Task<IReadOnlyList<FolderInfoDto>> GetTreeAsync(string root, bool recursive, CancellationToken ct = default)
     {
+        // Legacy query param: always return the full subfolder hierarchy for the sidebar.
+        // ("Recursive" on the client applies to file listing, not tree shape — see GetFilesAsync.)
+        _ = recursive;
         var safe = _validator.ValidateFolder(root);
-        var list = new List<FolderInfoDto> { BuildNode(safe, recursive, depth: 0, ct) };
+        var list = new List<FolderInfoDto> { BuildNode(safe, depth: 0, ct) };
         return Task.FromResult<IReadOnlyList<FolderInfoDto>>(list);
     }
 
@@ -75,7 +78,7 @@ public sealed class FolderService : IFolderService
         return Task.FromResult<IReadOnlyList<FileInfoDto>>(unique);
     }
 
-    private FolderInfoDto BuildNode(string path, bool recursive, int depth, CancellationToken ct)
+    private FolderInfoDto BuildNode(string path, int depth, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
 
@@ -90,18 +93,19 @@ public sealed class FolderService : IFolderService
         try
         {
             var subs = info.EnumerateDirectories().ToArray();
-            node.HasChildren = subs.Length > 0;
             node.FileCount = info.EnumerateFiles().Count(f =>
                 _settings.AllowedExtensions.Any(a => a.Equals(f.Extension, StringComparison.OrdinalIgnoreCase)));
 
-            if (recursive && depth < 12) // safety: cap recursion depth
+            if (depth < 12) // safety: cap recursion depth
             {
                 foreach (var s in subs)
                 {
-                    try { node.Children.Add(BuildNode(s.FullName, true, depth + 1, ct)); }
+                    try { node.Children.Add(BuildNode(s.FullName, depth + 1, ct)); }
                     catch (UnauthorizedAccessException) { /* skip */ }
                 }
             }
+
+            node.HasChildren = node.Children.Count > 0 || subs.Length > 0;
         }
         catch (UnauthorizedAccessException ex)
         {
