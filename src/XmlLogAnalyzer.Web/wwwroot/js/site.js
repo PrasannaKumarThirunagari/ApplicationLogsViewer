@@ -14,7 +14,7 @@
         localStorage.setItem(THEME_KEY, theme);
     }
 
-    const saved = localStorage.getItem(THEME_KEY) || "dark";
+    const saved = localStorage.getItem(THEME_KEY) || "light";
     applyTheme(saved);
 
     document.addEventListener("DOMContentLoaded", () => {

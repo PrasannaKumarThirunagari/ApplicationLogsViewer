@@ -3,9 +3,14 @@
 @{
     ViewData["Title"] = "Error";
 }
-<div class="container py-4">
-    <h2 class="text-danger"><i class="bi bi-exclamation-triangle"></i> Something went wrong</h2>
-    <p class="text-secondary">An unexpected error occurred. Please try again or refresh the page.</p>
-    <p class="small text-secondary">Request ID: <code>@Model.RequestId</code></p>
-    <a class="btn btn-primary" href="/">Back to Explorer</a>
+<div class="app-main-inner py-4">
+    <div class="surface-card mx-auto" style="max-width:520px">
+        <div class="card-pad text-center">
+            <div class="mb-3 text-danger display-4"><i class="bi bi-exclamation-triangle"></i></div>
+            <h2 class="h4 mb-2">Something went wrong</h2>
+            <p class="text-secondary mb-3">An unexpected error occurred. Try again or return to the explorer.</p>
+            <p class="small text-muted mb-4">Request ID: <code class="user-select-all">@Model.RequestId</code></p>
+            <a class="btn btn-primary px-4" href="/">Back to explorer</a>
+        </div>
+    </div>
 </div>

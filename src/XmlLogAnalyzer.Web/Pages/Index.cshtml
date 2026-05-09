@@ -2,15 +2,17 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Explorer";
+    ViewData["ActiveNav"] = "explorer";
 }
 
 <div class="explorer-shell">
     <!-- LEFT: folder tree + file list -->
-    <aside class="explorer-side">
+    <aside class="explorer-side" aria-label="Explorer navigation">
         <div class="side-section">
+            <div class="side-section-label">Browse</div>
             <div class="d-flex align-items-center gap-2 mb-2">
-                <i class="bi bi-folder2-open"></i>
-                <strong>Folders</strong>
+                <i class="bi bi-folder2-open side-icon"></i>
+                <strong class="side-heading">Folders</strong>
                 <button class="btn btn-sm btn-outline-secondary ms-auto" id="btn-refresh-roots" title="Refresh roots">
                     <i class="bi bi-arrow-clockwise"></i>
                 </button>
@@ -28,15 +30,16 @@
         </div>
 
         <div class="side-section side-favs">
+            <div class="side-section-label">Shortcuts</div>
             <div class="d-flex align-items-center gap-2 mb-2">
-                <i class="bi bi-star-fill text-warning"></i><strong>Favorites</strong>
+                <i class="bi bi-star-fill side-icon text-warning"></i><strong class="side-heading">Favorites</strong>
             </div>
             <ul id="favList" class="path-list small"></ul>
         </div>
 
         <div class="side-section side-recent">
             <div class="d-flex align-items-center gap-2 mb-2">
-                <i class="bi bi-clock-history"></i><strong>Recently viewed</strong>
+                <i class="bi bi-clock-history side-icon"></i><strong class="side-heading">Recently viewed</strong>
                 <button type="button" class="btn btn-sm btn-outline-secondary ms-auto px-2 py-0 lh-lg" id="btn-clear-recent"
                         disabled title="Clear recently viewed files">
                     <i class="bi bi-x-lg"></i><span class="visually-hidden"> Clear recent</span>
@@ -48,11 +51,13 @@
 
     <!-- CENTER + RIGHT: files + log grid (shown when a file is opened) -->
     <section class="explorer-main">
-        <header class="files-header">
+        <div class="explorer-stack">
+        <div class="surface-card files-panel" id="filesPanel">
+        <header class="files-header card-toolbar">
             <div class="d-flex align-items-center gap-2 flex-wrap">
-                <i class="bi bi-files"></i>
-                <strong id="currentFolder" class="text-truncate">No folder selected</strong>
-                <span class="badge text-bg-secondary" id="fileCount">0 files</span>
+                <span class="toolbar-icon-wrap" aria-hidden="true"><i class="bi bi-files"></i></span>
+                <strong id="currentFolder" class="text-truncate toolbar-title">No folder selected</strong>
+                <span class="badge rounded-pill app-badge-soft" id="fileCount">0 files</span>
                 <span class="ms-auto"></span>
                 <div class="input-group input-group-sm" style="max-width:280px">
                     <span class="input-group-text"><i class="bi bi-funnel"></i></span>
@@ -72,29 +77,27 @@
             </div>
         </header>
 
-        <div class="files-list-wrap">
-            <table class="table table-sm table-hover files-list-table">
+        <div class="files-list-wrap table-responsive">
+            <table class="table table-sm table-hover files-list-table mb-0">
                 <thead>
                     <tr>
-                        <th style="width:40%">Name</th>
-                        <th class="text-end" style="width:12%">Size</th>
-                        <th style="width:18%">Last modified</th>
-                        <th class="text-end" style="width:10%">Entries</th>
-                        <th class="text-end" style="width:8%">Errors</th>
-                        <th class="text-end" style="width:8%">Warnings</th>
-                        <th style="width:4%"></th>
+                        <th style="width:52%">Name</th>
+                        <th class="text-end" style="width:14%">Size</th>
+                        <th style="width:30%">Last modified</th>
+                        <th class="text-end" style="width:2.5rem" aria-label="Favorite"></th>
                     </tr>
                 </thead>
                 <tbody id="filesBody"></tbody>
             </table>
         </div>
+        </div>
 
         <!-- ====== LOG VIEWER ====== -->
-        <div id="logViewer" class="log-viewer d-none">
+        <div id="logViewer" class="surface-card log-viewer d-none">
             <header class="log-viewer-header">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <i class="bi bi-journal-code"></i>
-                    <strong id="openedFile" class="text-truncate"></strong>
+                    <span class="toolbar-icon-wrap" aria-hidden="true"><i class="bi bi-journal-code"></i></span>
+                    <strong id="openedFile" class="text-truncate toolbar-title flex-grow-1" style="min-width:8rem"></strong>
                     <span class="ms-auto"></span>
                     <button type="button" id="btn-reload-file-header" class="btn btn-sm btn-outline-primary"
                             title="Reload this file from disk (clears server cache)">
@@ -117,7 +120,7 @@
             <div class="stats-strip" id="statsStrip"></div>
 
             <!-- Sticky filters -->
-            <div class="filters-row sticky-top">
+            <div class="filters-row">
                 <input id="globalSearch" class="form-control form-control-sm" placeholder="Global search (multi-keyword, case-insensitive)..." />
                 <select id="severityFilter" class="form-select form-select-sm">
                     <option value="">All severity</option>
@@ -170,7 +173,23 @@
                 <pre class="raw-pane" id="jsonPane">Select an entry from the grid for JSON.</pre>
             </div>
         </div>
+        </div>
     </section>
+</div>
+
+<!-- Full log message (grid Message column is truncated with ellipsis) -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Log message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <pre class="mb-0 log-message-modal-body" id="messageModalBody"></pre>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

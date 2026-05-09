@@ -1,0 +1,202 @@
+/* =============================================================================
+   Design system — SaaS / enterprise (Linear · Stripe · Vercel lineage)
+   8px spacing · WCAG-minded contrast · motion respects prefers-reduced-motion
+============================================================================= */
+
+:root {
+    /* ——— Brand (primary palette) ——— */
+    --color-indigo-500: #4f46e5;
+    --color-indigo-600: #4338ca;
+    --color-blue-500:   #2563eb;
+    --color-violet-500: #7c3aed;
+    --color-cyan-500:   #06b6d4;
+
+    --gradient-brand: linear-gradient(135deg, var(--color-indigo-500) 0%, var(--color-violet-500) 52%, #6366f1 100%);
+    --gradient-brand-subtle: linear-gradient(135deg, rgba(79, 70, 229, 0.12) 0%, rgba(124, 58, 237, 0.08) 100%);
+
+    /* ——— Status ——— */
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error:   #ef4444;
+    --color-info:    #3b82f6;
+
+    /* ——— Spacing (8px base) ——— */
+    --space-0: 0;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+
+    /* ——— Radius ——— */
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 18px;
+    --r-xl: 22px;
+    --r-2xl: 28px;
+    --r-pill: 9999px;
+
+    /* ——— Typography scale ——— */
+    --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+    --text-xs: 0.75rem;
+    --text-sm: 0.8125rem;
+    --text-base: 0.9375rem;
+    --text-md: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-hero: clamp(2rem, 4vw, 3rem);
+
+    --leading-tight: 1.25;
+    --leading-snug: 1.4;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.6;
+
+    --font-regular: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+
+    /* ——— Motion ——— */
+    --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --dur-fast: 150ms;
+    --dur-normal: 250ms;
+    --dur-slow: 350ms;
+
+    --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.35);
+    --focus-ring-inset: inset 0 0 0 2px rgba(79, 70, 229, 0.5);
+
+    /* App structure */
+    --header-h: 58px;
+
+    /* Legacy aliases consumed by site.css */
+    --radius-card: var(--r-xl);
+    --radius-pill: var(--r-pill);
+    --radius-soft: var(--r-md);
+}
+
+/* ——— Light ——— */
+[data-theme="light"] {
+    --canvas: #f8fafc;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --surface-muted: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+    --text-tertiary: #94a3b8;
+    --border-subtle: rgba(15, 23, 42, 0.06);
+    --border-default: #e2e8f0;
+    --border-strong: #cbd5e1;
+
+    --accent: var(--color-indigo-500);
+    --accent-hover: var(--color-indigo-600);
+    --accent-muted: rgba(79, 70, 229, 0.1);
+    --accent-glow: 0 8px 24px rgba(79, 70, 229, 0.22);
+
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --header-backdrop: blur(20px) saturate(1.8);
+
+    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 4px 8px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 12px 40px rgba(15, 23, 42, 0.12);
+    --shadow-float: 0 0 0 1px var(--border-subtle), var(--shadow-md);
+
+    --row-alt: #f8fafc;
+    --row-hover: rgba(79, 70, 229, 0.06);
+
+    /* Sidebar (light: floating card) */
+    --sidebar-bg: var(--surface);
+    --sidebar-fg: var(--text-primary);
+    --sidebar-muted: var(--text-secondary);
+    --sidebar-line: var(--border-default);
+    --sidebar-input-bg: #f8fafc;
+    --sidebar-tree-bg: #f1f5f9;
+
+    /* ——— Legacy token bridge ——— */
+    --app-canvas: var(--canvas);
+    --surface-elevated: var(--surface-raised);
+    --fg-0: var(--text-primary);
+    --fg-1: #334155;
+    --fg-2: var(--text-secondary);
+    --border: var(--border-default);
+    --shadow-md: var(--shadow-float);
+
+    --c-error: var(--color-error);
+    --c-warn: var(--color-warning);
+    --c-info: var(--color-info);
+    --c-debug: var(--text-tertiary);
+    --c-success: var(--color-success);
+}
+
+/* ——— Dark (cinematic, no pure black) ——— */
+[data-theme="dark"] {
+    --canvas: #0f172a;
+    --surface: #111827;
+    --surface-raised: #1e293b;
+    --surface-muted: #0f172a;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-default: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.14);
+
+    --accent: #818cf8;
+    --accent-hover: #a5b4fc;
+    --accent-muted: rgba(129, 140, 248, 0.15);
+    --accent-glow: 0 8px 28px rgba(99, 102, 241, 0.25);
+
+    --glass-bg: rgba(17, 24, 39, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --header-backdrop: blur(20px) saturate(1.4);
+
+    --shadow-xs: 0 1px 0 rgba(255, 255, 255, 0.04);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.45);
+    --shadow-float: 0 0 0 1px var(--border-subtle), var(--shadow-md);
+
+    --row-alt: rgba(255, 255, 255, 0.03);
+    --row-hover: rgba(129, 140, 248, 0.1);
+
+    --sidebar-bg: linear-gradient(180deg, #111827 0%, #0b1220 100%);
+    --sidebar-fg: rgba(248, 250, 252, 0.94);
+    --sidebar-muted: rgba(148, 163, 184, 0.85);
+    --sidebar-line: rgba(255, 255, 255, 0.08);
+    --sidebar-input-bg: rgba(255, 255, 255, 0.05);
+    --sidebar-tree-bg: rgba(0, 0, 0, 0.22);
+
+    --app-canvas: var(--canvas);
+    --surface-elevated: var(--surface-raised);
+    --fg-0: var(--text-primary);
+    --fg-1: #cbd5e1;
+    --fg-2: var(--text-secondary);
+    --border: var(--border-default);
+    --shadow-md: var(--shadow-float);
+
+    --c-error: #f87171;
+    --c-warn: #fbbf24;
+    --c-info: #60a5fa;
+    --c-debug: var(--text-tertiary);
+    --c-success: #34d399;
+
+    --focus-ring: 0 0 0 3px rgba(129, 140, 248, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

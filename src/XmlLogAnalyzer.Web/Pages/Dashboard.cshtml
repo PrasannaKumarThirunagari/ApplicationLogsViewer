@@ -1,30 +1,42 @@
 @page
 @{
     ViewData["Title"] = "Dashboard";
+    ViewData["ActiveNav"] = "dashboard";
 }
-<div class="container-fluid p-3">
-    <h4 class="mb-3"><i class="bi bi-speedometer2"></i> Log Analysis Dashboard</h4>
-    <div class="row g-3 mb-3">
-        <div class="col-12 col-md-4">
-            <label class="form-label small">File path</label>
-            <div class="input-group input-group-sm">
-                <input id="dashPath" class="form-control" placeholder="C:\Logs\app.xml" />
-                <button id="btn-load-dash" class="btn btn-primary">Analyze</button>
+
+<div class="dash-page">
+    <div class="dash-hero surface-card mb-3">
+        <h1 class="dash-title"><i class="bi bi-speedometer2 text-primary"></i> Log analysis</h1>
+        <p class="dash-sub text-secondary mb-0">Load a path under your configured roots for aggregate stats.</p>
+    </div>
+
+    <div class="surface-card dash-control-card mb-3">
+        <label class="form-label small text-secondary mb-1">Log file path</label>
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-light"><i class="bi bi-file-earmark-text"></i></span>
+                    <input id="dashPath" class="form-control" placeholder="C:\Logs\application.xml" />
+                </div>
+            </div>
+            <div class="col-auto">
+                <button type="button" id="btn-load-dash" class="btn btn-primary px-4">Analyze</button>
             </div>
         </div>
     </div>
-    <div id="dashCards" class="row g-3 mb-3"></div>
+
+    <div id="dashCards" class="row g-3 mb-4"></div>
     <div class="row g-3">
         <div class="col-12 col-lg-6">
-            <div class="card panel-card">
-                <div class="card-header"><i class="bi bi-pc-display"></i> Logs by Machine</div>
-                <div class="card-body"><div id="byMachine"></div></div>
+            <div class="surface-card h-100">
+                <div class="card-pad border-bottom"><strong><i class="bi bi-pc-display me-2"></i>Logs by machine</strong></div>
+                <div class="card-pad"><div id="byMachine"></div></div>
             </div>
         </div>
         <div class="col-12 col-lg-6">
-            <div class="card panel-card">
-                <div class="card-header"><i class="bi bi-bug"></i> Top Exceptions</div>
-                <div class="card-body"><div id="byException"></div></div>
+            <div class="surface-card h-100">
+                <div class="card-pad border-bottom"><strong><i class="bi bi-bug me-2"></i>Top exceptions</strong></div>
+                <div class="card-pad"><div id="byException"></div></div>
             </div>
         </div>
     </div>

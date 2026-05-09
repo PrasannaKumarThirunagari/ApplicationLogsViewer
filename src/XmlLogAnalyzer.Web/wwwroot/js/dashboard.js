@@ -19,10 +19,10 @@
 
     function card(title, value, kind) {
         return `<div class="col-6 col-lg-3">
-            <div class="card panel-card text-${kind || "info"}">
-                <div class="card-body">
-                    <div class="small text-secondary">${xla.esc(title)}</div>
-                    <div class="display-6">${value}</div>
+            <div class="surface-card stat-dash-card stat-dash-${kind || "default"} h-100">
+                <div class="stat-dash-inner">
+                    <div class="small text-secondary text-uppercase letter-spacing-sm">${xla.esc(title)}</div>
+                    <div class="stat-dash-value">${value}</div>
                 </div>
             </div>
         </div>`;

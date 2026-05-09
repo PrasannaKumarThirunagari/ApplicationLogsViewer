@@ -76,7 +76,7 @@
         });
 
         $("btn-apply-filters").addEventListener("click", () => { state.page = 1; loadGrid(); });
-        $("btn-clear-filters").addEventListener("click", clearFilters);
+        $("btn-clear-filters").addEventListener("click", () => clearFilters());
         $("btn-prev-page").addEventListener("click", () => { if (state.page > 1) { state.page--; loadGrid(); } });
         $("btn-next-page").addEventListener("click", () => { state.page++; loadGrid(); });
         $("pageSize").addEventListener("change", (e) => { state.pageSize = +e.target.value; state.page = 1; loadGrid(); });
@@ -86,7 +86,12 @@
 
         // keyboard shortcuts
         document.addEventListener("keydown", (e) => {
-            if (e.key === "/" && !["INPUT","TEXTAREA"].includes(document.activeElement.tagName)) {
+            if (e.key === "Escape" && !$("logViewer").classList.contains("d-none")) {
+                e.preventDefault();
+                closeViewer();
+                return;
+            }
+            if (e.key === "/" && !["INPUT","TEXTAREA","SELECT"].includes(document.activeElement.tagName)) {
                 e.preventDefault(); $("globalSearch").focus();
             }
         });
@@ -268,14 +273,15 @@
         body.innerHTML = "";
         list.forEach(f => {
             const tr = document.createElement("tr");
+            if (state.currentFile && pathsEqual(f.fullPath, state.currentFile)) {
+                tr.classList.add("is-current-file");
+                tr.setAttribute("aria-current", "true");
+            }
             tr.innerHTML = `
                 <td class="text-truncate"><i class="bi bi-file-earmark-code"></i> ${xla.esc(f.name)}</td>
                 <td class="text-end">${xla.esc(f.sizeDisplay || xla.fmtSize(f.size))}</td>
                 <td>${xla.fmtTime(f.lastModified)}</td>
-                <td class="text-end">${f.totalEntries ?? "—"}</td>
-                <td class="text-end text-error">${f.errorCount ?? "—"}</td>
-                <td class="text-end text-warning">${f.warningCount ?? "—"}</td>
-                <td><i class="bi bi-star toggle-fav" title="Favorite"></i></td>`;
+                <td class="text-end"><i class="bi bi-star toggle-fav" title="Favorite"></i></td>`;
             tr.addEventListener("click", () => onSelectFile(f.fullPath));
             tr.querySelector(".toggle-fav").addEventListener("click", async (e) => {
                 e.stopPropagation();
@@ -302,16 +308,16 @@
         state.currentFile = path;
         $("openedFile").textContent = path;
         $("logViewer").classList.remove("d-none");
-        document.querySelector(".files-list-wrap").classList.add("d-none");
+        renderFiles();
         state.page = 1;
-        clearFilters();
+        clearFilters({ skipLoad: true });
         await loadGrid();
     }
 
     function closeViewer() {
         $("logViewer").classList.add("d-none");
-        document.querySelector(".files-list-wrap").classList.remove("d-none");
         state.currentFile = null;
+        renderFiles();
     }
 
     function showView(name) {
@@ -397,7 +403,14 @@
         }));
 
         body.innerHTML = "";
-        r.entries.forEach(e => {
+        const entries = r.entries || [];
+        if (entries.length === 0) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td colspan="${COLUMNS.length}" class="text-center text-secondary py-4">
+                No entries match the current filters. Try clearing filters or changing the date range.</td>`;
+            body.appendChild(tr);
+        }
+        entries.forEach(e => {
             const tr = document.createElement("tr");
             tr.dataset.index = e.index;
             // Row-level tint based on severity, so users can spot Errors at a glance.
@@ -407,15 +420,40 @@
             }
             tr.innerHTML = COLUMNS.map(c => {
                 const cell = c.get(e, term);
-                return `<td title="${xla.esc(c.get(e) ? String(c.get(e)).replace(/<[^>]+>/g,'') : '')}">${cell ?? ""}</td>`;
+                const titlePlain = c.key === "LogMessage"
+                    ? String(e.logMessage ?? "")
+                    : (c.get(e) ? String(c.get(e)).replace(/<[^>]+>/g, "") : "");
+                return `<td data-col="${c.key}" title="${xla.esc(titlePlain)}">${cell ?? ""}</td>`;
             }).join("");
             tr.addEventListener("click", () => selectRow(e.index, tr));
+            const msgTd = tr.querySelector('td[data-col="LogMessage"]');
+            if (msgTd) {
+                msgTd.classList.add("log-grid-msg-cell");
+                msgTd.addEventListener("click", (ev) => {
+                    ev.stopPropagation();
+                    selectRow(e.index, tr);
+                    openMessageModal(e.logMessage || "");
+                });
+            }
             body.appendChild(tr);
         });
 
-        const start = (r.page - 1) * r.pageSize + 1;
-        const end = Math.min(r.total, r.page * r.pageSize);
-        $("pagerInfo").textContent = `${start.toLocaleString()}–${end.toLocaleString()} of ${r.total.toLocaleString()}`;
+        const total = r.total ?? 0;
+        if (total === 0) {
+            $("pagerInfo").textContent = "0 entries";
+        } else {
+            const start = (r.page - 1) * r.pageSize + 1;
+            const end = Math.min(total, r.page * r.pageSize);
+            $("pagerInfo").textContent = `${start.toLocaleString()}–${end.toLocaleString()} of ${total.toLocaleString()}`;
+        }
+    }
+
+    function openMessageModal(text) {
+        const bodyEl = $("messageModalBody");
+        const modalEl = $("messageModal");
+        if (!bodyEl || !modalEl || !window.bootstrap) return;
+        bodyEl.textContent = text && text.trim() ? text : "(empty message)";
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }
 
     function selectRow(idx, tr) {
@@ -465,10 +503,11 @@
         return out;
     }
 
-    function clearFilters() {
+    function clearFilters(opts) {
+        const skipLoad = opts && opts.skipLoad;
         ["globalSearch","fromDate","toDate"].forEach(id => $(id).value = "");
         $("severityFilter").value = "";
         state.page = 1;
-        loadGrid();
+        if (!skipLoad) loadGrid();
     }
 })();
