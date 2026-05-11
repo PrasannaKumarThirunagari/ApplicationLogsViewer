@@ -1,0 +1,158 @@
+/* ====================================================================
+   Text Logs page — page-scoped layout: left sidebar (files + search)
+   + right main pane (viewer / grid). Uses the same design tokens as
+   site.css so it stays consistent in both light and dark themes.
+==================================================================== */
+
+.textlog-shell {
+    display: grid;
+    grid-template-columns: minmax(280px, 22vw) 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+    padding: var(--space-3);
+    gap: var(--space-3);
+    box-sizing: border-box;
+    background: var(--app-canvas);
+}
+
+/* ===== Left sidebar ===== */
+.textlog-side {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-fg);
+    border: 1px solid var(--sidebar-line);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-float);
+    overflow: hidden;
+    padding: var(--space-4) var(--space-3) var(--space-3);
+}
+
+.textlog-files-scroll {
+    flex: 1 1 0;
+    min-height: 6rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--sidebar-line);
+    border-radius: var(--r-md);
+    background: var(--sidebar-tree-bg, transparent);
+}
+
+.textlog-files-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--sidebar-muted) 55%, transparent) transparent;
+}
+.textlog-files-scroll::-webkit-scrollbar { width: 7px; }
+.textlog-files-scroll::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--sidebar-muted) 50%, transparent);
+    border-radius: 999px;
+}
+
+.textlog-file-list {
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+}
+
+.textlog-file-list li {
+    padding: 6px 8px;
+    border-radius: var(--r-sm, 4px);
+    margin-bottom: 2px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    transition: background 0.12s ease;
+    border: 1px solid transparent;
+}
+
+.textlog-file-list li:hover {
+    background: var(--row-hover);
+}
+
+.textlog-file-list li.is-active {
+    background: var(--nav-active-bg, rgba(96, 165, 250, 0.15));
+    border-color: var(--border-default);
+}
+
+.textlog-file-list li .file-name {
+    font-size: 12.5px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-primary, inherit);
+}
+
+.textlog-file-list li .file-meta {
+    font-size: 10.5px;
+    opacity: 0.7;
+    display: flex;
+    gap: 6px;
+}
+
+.textlog-file-list li.is-hidden { display: none; }
+
+.textlog-file-empty {
+    list-style: none;
+    padding: 12px;
+    text-align: center;
+    font-style: italic;
+}
+
+/* ===== Right main pane ===== */
+.textlog-main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.textlog-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: var(--space-5);
+}
+
+.textlog-viewer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.textlog-grid-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+/* Override the explorer's max-height so the grid uses the full pane height */
+.textlog-viewer .grid-wrap {
+    max-height: none !important;
+}
+
+/* Cell hint: any clickable cell -> underline on hover so users discover the modal */
+.textlog-viewer .log-grid tbody td[data-col] {
+    cursor: pointer;
+}
+.textlog-viewer .log-grid tbody td[data-col]:hover {
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--accent, #2563eb) 50%, transparent);
+    text-underline-offset: 2px;
+}
+
+/* Responsive: collapse to a single column on narrow viewports */
+@media (max-width: 900px) {
+    .textlog-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+    }
+    .textlog-side { max-height: 40vh; }
+}

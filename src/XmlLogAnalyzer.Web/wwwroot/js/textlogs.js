@@ -1,12 +1,17 @@
 /* =====================================================================
    textlogs.js — driver for the "Text Logs" tab.
-   Talks to /api/text-logs/*.  Client-side state only.
+
+   Layout: left sidebar holds the file picker (root selector + search +
+   scrollable list). Right pane holds the viewer (filters + grid). When
+   no file is open, a placeholder card sits in the right pane.
+
+   Talks to /api/text-logs/*.  Pure client state.
 ===================================================================== */
 (function () {
     const state = {
         currentRoot: null,
-        files: [],
-        currentFile: null,
+        files: [],            // raw FileInfoDto[] from server
+        currentFile: null,    // selected file's fullPath
         page: 1,
         pageSize: 100,
         sortBy: "Timestamp",
@@ -24,9 +29,17 @@
     }
 
     function bindHandlers() {
+        // Sidebar
         $("textRootDropdown").addEventListener("change", e => loadFiles(e.target.value));
         $("textRecursive").addEventListener("change", () => state.currentRoot && loadFiles(state.currentRoot));
         $("btn-text-refresh").addEventListener("click", () => state.currentRoot && loadFiles(state.currentRoot));
+        $("textFileFilter").addEventListener("input", filterFiles);
+        $("btn-text-filter-clear").addEventListener("click", () => {
+            $("textFileFilter").value = "";
+            filterFiles();
+        });
+
+        // Viewer
         $("btn-text-close").addEventListener("click", closeViewer);
         $("btn-text-apply").addEventListener("click", () => { state.page = 1; loadGrid(); });
         $("btn-text-clear").addEventListener("click", clearFilters);
@@ -36,11 +49,14 @@
         $("textSearch").addEventListener("keydown", e => { if (e.key === "Enter") { state.page = 1; loadGrid(); } });
         $("btn-text-reload").addEventListener("click", async () => {
             if (!state.currentFile) return;
-            await xla.api(`/api/text-logs/refresh?path=${encodeURIComponent(state.currentFile)}`, { method: "POST" });
-            loadGrid();
+            try {
+                await xla.api(`/api/text-logs/refresh?path=${encodeURIComponent(state.currentFile)}`, { method: "POST" });
+                await loadGrid();
+            } catch (err) { xla.toast(err.message, "error"); }
         });
     }
 
+    // ====== Roots / files ======
     async function loadRoots() {
         try {
             const data = await xla.api("/api/text-logs/roots");
@@ -58,40 +74,82 @@
 
     async function loadFiles(folder) {
         state.currentRoot = folder;
-        $("textCurrentFolder").textContent = folder;
         try {
             const recursive = $("textRecursive").checked;
             const files = await xla.api(`/api/text-logs/files?path=${encodeURIComponent(folder)}&recursive=${recursive}`);
-            state.files = files;
+            state.files = Array.isArray(files) ? files : [];
             renderFiles();
-        } catch (err) { xla.toast(err.message, "error"); }
+        } catch (err) {
+            state.files = [];
+            renderFiles();
+            xla.toast(err.message, "error");
+        }
     }
 
+    /** Render the file list in the sidebar (always sorted latest-first by the server). */
     function renderFiles() {
-        const body = $("textFilesBody");
-        body.innerHTML = "";
+        const ul = $("textFilesList");
+        ul.innerHTML = "";
+        $("textFilesCount").textContent = state.files.length;
+
         if (state.files.length === 0) {
-            body.innerHTML = `<tr><td colspan="4" class="text-secondary p-3">No files found.</td></tr>`;
+            const li = document.createElement("li");
+            li.className = "textlog-file-empty text-secondary small";
+            li.textContent = "No files in this folder.";
+            ul.appendChild(li);
             return;
         }
         state.files.forEach(f => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td class="text-truncate"><i class="bi bi-file-earmark-text"></i> ${xla.esc(f.name)}</td>
-                <td class="text-end">${xla.esc(f.sizeDisplay || xla.fmtSize(f.size))}</td>
-                <td>${xla.fmtTime(f.lastModified)}</td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> Open</button>
-                </td>`;
-            tr.addEventListener("click", () => openFile(f.fullPath));
-            body.appendChild(tr);
+            const li = document.createElement("li");
+            li.dataset.fullpath = f.fullPath;
+            li.dataset.name = (f.name || "").toLowerCase();
+            li.dataset.path = (f.fullPath || "").toLowerCase();
+            if (state.currentFile && state.currentFile === f.fullPath) li.classList.add("is-active");
+            li.innerHTML = `
+                <div class="file-name" title="${xla.esc(f.fullPath)}">
+                    <i class="bi bi-file-earmark-text"></i> ${xla.esc(f.name)}
+                </div>
+                <div class="file-meta text-secondary">
+                    <span>${xla.esc(f.sizeDisplay || xla.fmtSize(f.size))}</span>
+                    <span>·</span>
+                    <span>${xla.fmtTime(f.lastModified)}</span>
+                </div>`;
+            li.addEventListener("click", () => openFile(f.fullPath));
+            ul.appendChild(li);
         });
+
+        filterFiles(); // apply current search box value if any
     }
 
+    /** Client-side filter on file name / path. */
+    function filterFiles() {
+        const term = ($("textFileFilter").value || "").trim().toLowerCase();
+        const items = $("textFilesList").querySelectorAll("li[data-fullpath]");
+        let shown = 0;
+        items.forEach(li => {
+            const hit = !term ||
+                li.dataset.name.includes(term) ||
+                li.dataset.path.includes(term);
+            li.classList.toggle("is-hidden", !hit);
+            if (hit) shown++;
+        });
+        $("textFilesCount").textContent = term ? `${shown}/${items.length}` : items.length;
+    }
+
+    // ====== Viewer ======
     async function openFile(path) {
         state.currentFile = path;
         $("textOpenedFile").textContent = path;
+
+        // Mark active in sidebar
+        $("textFilesList").querySelectorAll("li").forEach(li => {
+            li.classList.toggle("is-active", li.dataset.fullpath === path);
+        });
+
+        // Swap placeholder for viewer.
+        $("textPlaceholder").classList.add("d-none");
         $("textViewer").classList.remove("d-none");
+
         state.page = 1;
         clearFilters({ skipReload: true });
         await loadGrid();
@@ -100,6 +158,8 @@
     function closeViewer() {
         state.currentFile = null;
         $("textViewer").classList.add("d-none");
+        $("textPlaceholder").classList.remove("d-none");
+        $("textFilesList").querySelectorAll("li.is-active").forEach(li => li.classList.remove("is-active"));
     }
 
     function readQuery() {
@@ -131,7 +191,6 @@
         } catch (err) { xla.toast(err.message, "error"); }
     }
 
-    /** Visible banner when the server kept only the tail (most-recent) entries of a huge file. */
     function renderTruncationBanner(r) {
         const banner = $("textTruncBanner");
         const text   = $("textTruncText");
@@ -142,7 +201,7 @@
         const scanned = r.rawEntriesScanned || kept;
         text.textContent =
             `Large file (${mb} MB, ${scanned.toLocaleString()} entries scanned). ` +
-            `Showing the most recent ${kept.toLocaleString()} entries — earlier entries were dropped to keep memory bounded.`;
+            `Showing the most recent ${kept.toLocaleString()} entries — earlier entries dropped to keep memory bounded.`;
         banner.classList.remove("d-none");
     }
 
@@ -154,8 +213,7 @@
             <span class="stat-chip info">Info <strong>${s.infoCount}</strong></span>
             <span class="stat-chip debug">Debug <strong>${s.debugCount}</strong></span>
             ${s.latestEntryTime ? `<span class="stat-chip">Latest <strong>${xla.fmtTime(s.latestEntryTime)}</strong></span>` : ""}`;
-        $("textStatsLine").textContent =
-            `${s.totalEntries.toLocaleString()} entries`;
+        $("textStatsLine").textContent = `${s.totalEntries.toLocaleString()} entries`;
     }
 
     /* Columns: Date, Time, Seconds (as its own column), Severity, Message + raw. */
@@ -185,7 +243,11 @@
         }));
 
         body.innerHTML = "";
-        r.entries.forEach(e => {
+        if ((r.entries || []).length === 0) {
+            body.innerHTML = `<tr><td colspan="${COLUMNS.length}" class="text-center text-secondary py-4">
+                No entries match the current filters.</td></tr>`;
+        }
+        (r.entries || []).forEach(e => {
             const tr = document.createElement("tr");
             const sev = (e.severityLevel || "").trim();
             if (["Error","Warning","Info","Debug"].includes(sev)) {
@@ -198,7 +260,6 @@
                     : extractPlain(c.get(e));
                 return `<td data-col="${c.key}" data-full="${xla.esc(plain)}" title="${xla.esc(plain)}">${cell ?? ""}</td>`;
             }).join("");
-            // Cell click → modal with the full content of that column.
             tr.addEventListener("click", (ev) => {
                 const td = ev.target.closest("td[data-col]");
                 if (!td) return;
@@ -209,9 +270,14 @@
             body.appendChild(tr);
         });
 
-        const start = (r.page - 1) * r.pageSize + 1;
-        const end = Math.min(r.total, r.page * r.pageSize);
-        $("textPagerInfo").textContent = `${start.toLocaleString()}–${end.toLocaleString()} of ${r.total.toLocaleString()}`;
+        const total = r.total ?? 0;
+        if (total === 0) {
+            $("textPagerInfo").textContent = "0 entries";
+        } else {
+            const start = (r.page - 1) * r.pageSize + 1;
+            const end = Math.min(total, r.page * r.pageSize);
+            $("textPagerInfo").textContent = `${start.toLocaleString()}–${end.toLocaleString()} of ${total.toLocaleString()}`;
+        }
     }
 
     function clearFilters(opts) {
@@ -221,7 +287,6 @@
         if (!(opts && opts.skipReload)) loadGrid();
     }
 
-    /** Opens the #textCellModal and shows a column's full plain-text content. */
     function openTextCellModal(title, text) {
         const labelEl = $("textCellModalLabel");
         const bodyEl  = $("textCellModalBody");
@@ -232,8 +297,6 @@
         bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }
 
-    /** Strips HTML tags from a rendered cell value (e.g. severity badges) so the modal
-        shows plain text rather than markup. */
     function extractPlain(value) {
         if (value == null) return "";
         const s = String(value);

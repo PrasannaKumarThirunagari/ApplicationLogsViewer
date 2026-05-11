@@ -5,102 +5,128 @@
     ViewData["ActiveNav"] = "textlogs";
 }
 
-<div class="textlog-page">
+@* Page-scoped layout: left aside = root picker + search + file list (scrollable);
+   right pane = filters + grid (also scrollable). When no file is selected, the right
+   pane shows a small placeholder so the user knows what to do next. *@
+<link rel="stylesheet" href="~/css/textlogs.css" asp-append-version="true" />
 
-    <!-- Folder / file picker -->
-    <div class="surface-card mb-3">
-        <div class="card-pad">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <i class="bi bi-file-text"></i>
-                <strong>Text-log roots</strong>
-                <select id="textRootDropdown" class="form-select form-select-sm" style="max-width:480px"></select>
-                <div class="form-check form-switch ms-2">
-                    <input class="form-check-input" type="checkbox" id="textRecursive" checked />
-                    <label class="form-check-label small" for="textRecursive">Recursive</label>
-                </div>
-                <button class="btn btn-sm btn-outline-secondary" id="btn-text-refresh" title="Refresh files">
-                    <i class="bi bi-arrow-clockwise"></i>
-                </button>
-                <span class="ms-auto small text-secondary" id="textCurrentFolder"></span>
-            </div>
-        </div>
-        <div class="files-list-wrap">
-            <table class="table table-sm table-hover files-list-table mb-0">
-                <thead>
-                    <tr>
-                        <th style="width:50%">File</th>
-                        <th class="text-end" style="width:15%">Size</th>
-                        <th style="width:25%">Last modified</th>
-                        <th style="width:10%"></th>
-                    </tr>
-                </thead>
-                <tbody id="textFilesBody"></tbody>
-            </table>
-        </div>
-    </div>
+<div class="textlog-shell">
 
-    <!-- Viewer (hidden until a file is opened) -->
-    <div id="textViewer" class="surface-card d-none">
-        <div class="card-pad border-bottom d-flex align-items-center gap-2 flex-wrap">
-            <i class="bi bi-journal-code"></i>
-            <strong id="textOpenedFile" class="text-truncate" style="max-width:60%"></strong>
-            <span class="ms-auto small text-secondary" id="textStatsLine"></span>
-            <button class="btn btn-sm btn-outline-secondary" id="btn-text-close" title="Close">
-                <i class="bi bi-x-lg"></i>
-            </button>
+    <!-- ============== LEFT: file picker sidebar ============== -->
+    <aside class="textlog-side" aria-label="Text-log files">
+        <div class="side-section-label">Root</div>
+        <select id="textRootDropdown" class="form-select form-select-sm mb-2"></select>
+
+        <div class="form-check form-switch small mb-2">
+            <input class="form-check-input" type="checkbox" id="textRecursive" checked />
+            <label class="form-check-label" for="textRecursive"
+                   title="When on, files are gathered from subfolders too.">Recursive</label>
         </div>
 
-        <!-- Sticky filter row -->
-        <div class="filters-row sticky-top">
-            <input id="textSearch"    class="form-control form-control-sm" placeholder="Search messages (case-insensitive, multi-keyword)..." />
-            <select id="textSeverity" class="form-select form-select-sm">
-                <option value="">All severity</option>
-                <option value="Error">Error</option>
-                <option value="Warning">Warning</option>
-                <option value="Info">Info</option>
-                <option value="Debug">Debug</option>
-            </select>
-            <input id="textDate"      class="form-control form-control-sm" placeholder="Date (YYYY-MM-DD)" />
-            <input id="textHour"      class="form-control form-control-sm" type="number" min="0" max="23" placeholder="Hour" />
-            <input id="textSeconds"   class="form-control form-control-sm" type="number" min="0" max="59" placeholder="Seconds" />
-            <button class="btn btn-sm btn-primary" id="btn-text-apply"><i class="bi bi-funnel-fill"></i> Apply</button>
-            <button class="btn btn-sm btn-outline-secondary" id="btn-text-clear">Clear</button>
-            <button class="btn btn-sm btn-outline-secondary" id="btn-text-reload" title="Reload from disk">
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="side-section-label flex-grow-1 mb-0">Files</div>
+            <span id="textFilesCount" class="badge text-bg-secondary">0</span>
+            <button class="btn btn-sm btn-outline-secondary px-2 py-0" id="btn-text-refresh"
+                    title="Re-list files from disk">
                 <i class="bi bi-arrow-clockwise"></i>
             </button>
         </div>
 
-        <!-- Stats strip -->
-        <div class="stats-strip" id="textStatsStrip"></div>
-
-        <!-- Truncation banner: shown when the file was too large for full in-memory load -->
-        <div id="textTruncBanner" class="alert alert-warning d-none m-2 py-2 small mb-0" role="status">
-            <i class="bi bi-exclamation-triangle me-1"></i>
-            <span id="textTruncText"></span>
+        <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="textFileFilter" class="form-control" placeholder="Search files..." autocomplete="off" />
+            <button class="btn btn-outline-secondary" id="btn-text-filter-clear" type="button"
+                    title="Clear file filter"><i class="bi bi-x-lg"></i></button>
         </div>
 
-        <!-- Grid -->
-        <div class="grid-wrap">
-            <table class="table table-sm log-grid">
-                <thead id="textGridHead"></thead>
-                <tbody id="textGridBody"></tbody>
-            </table>
+        <div class="textlog-files-scroll" role="region" aria-label="Files list">
+            <ul id="textFilesList" class="textlog-file-list">
+                <li class="textlog-file-empty text-secondary small">No files yet — pick a root above.</li>
+            </ul>
         </div>
-        <div class="pager">
-            <div class="small text-secondary" id="textPagerInfo"></div>
-            <div class="ms-auto btn-group btn-group-sm">
-                <button class="btn btn-outline-secondary" id="btn-text-prev"><i class="bi bi-chevron-left"></i></button>
-                <button class="btn btn-outline-secondary" id="btn-text-next"><i class="bi bi-chevron-right"></i></button>
+    </aside>
+
+    <!-- ============== RIGHT: viewer ============== -->
+    <section class="textlog-main">
+
+        <!-- Placeholder shown while no file is open -->
+        <div id="textPlaceholder" class="textlog-placeholder surface-card">
+            <div class="text-center">
+                <i class="bi bi-arrow-left-circle display-5 text-secondary"></i>
+                <h5 class="mt-3 mb-1">Select a text-log file</h5>
+                <p class="text-secondary small mb-0">
+                    Pick any file from the left to view its entries here.
+                </p>
             </div>
-            <select id="textPageSize" class="form-select form-select-sm ms-2" style="width:auto">
-                <option>50</option><option selected>100</option><option>250</option>
-                <option>500</option><option>1000</option>
-            </select>
         </div>
-    </div>
+
+        <!-- Viewer card — populated on file open -->
+        <div id="textViewer" class="surface-card textlog-viewer d-none">
+
+            <div class="card-pad border-bottom d-flex align-items-center gap-2 flex-wrap">
+                <i class="bi bi-journal-code"></i>
+                <strong id="textOpenedFile" class="text-truncate" style="max-width:55%"></strong>
+                <span class="ms-auto small text-secondary" id="textStatsLine"></span>
+                <button class="btn btn-sm btn-outline-secondary" id="btn-text-close" title="Close viewer">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Sticky filter row -->
+            <div class="filters-row sticky-top">
+                <input id="textSearch"    class="form-control form-control-sm" placeholder="Search messages (multi-keyword, case-insensitive)..." />
+                <select id="textSeverity" class="form-select form-select-sm">
+                    <option value="">All severity</option>
+                    <option value="Error">Error</option>
+                    <option value="Warning">Warning</option>
+                    <option value="Info">Info</option>
+                    <option value="Debug">Debug</option>
+                </select>
+                <input id="textDate"    class="form-control form-control-sm" placeholder="Date (YYYY-MM-DD)" />
+                <input id="textHour"    class="form-control form-control-sm" type="number" min="0" max="23" placeholder="Hour" />
+                <input id="textSeconds" class="form-control form-control-sm" type="number" min="0" max="59" placeholder="Seconds" />
+                <button class="btn btn-sm btn-primary" id="btn-text-apply"><i class="bi bi-funnel-fill"></i> Apply</button>
+                <button class="btn btn-sm btn-outline-secondary" id="btn-text-clear">Clear</button>
+                <button class="btn btn-sm btn-outline-secondary" id="btn-text-reload"
+                        title="Reload this file from disk (clears cache)">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+
+            <!-- Stats strip -->
+            <div class="stats-strip" id="textStatsStrip"></div>
+
+            <!-- Banner shown when the server kept only the tail of a huge file -->
+            <div id="textTruncBanner" class="alert alert-warning d-none m-2 py-2 small mb-0" role="status">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                <span id="textTruncText"></span>
+            </div>
+
+            <!-- Grid (scrollable region) -->
+            <div class="grid-wrap textlog-grid-wrap">
+                <table class="table table-sm log-grid">
+                    <thead id="textGridHead"></thead>
+                    <tbody id="textGridBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Pager -->
+            <div class="pager">
+                <div class="small text-secondary" id="textPagerInfo"></div>
+                <div class="ms-auto btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" id="btn-text-prev"><i class="bi bi-chevron-left"></i></button>
+                    <button class="btn btn-outline-secondary" id="btn-text-next"><i class="bi bi-chevron-right"></i></button>
+                </div>
+                <select id="textPageSize" class="form-select form-select-sm ms-2" style="width:auto">
+                    <option>50</option><option selected>100</option><option>250</option>
+                    <option>500</option><option>1000</option>
+                </select>
+            </div>
+        </div>
+    </section>
 </div>
 
-<!-- Full cell value modal (text-log grid cells are truncated with ellipsis) -->
+<!-- Modal for full cell content -->
 <div class="modal fade" id="textCellModal" tabindex="-1" aria-labelledby="textCellModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
