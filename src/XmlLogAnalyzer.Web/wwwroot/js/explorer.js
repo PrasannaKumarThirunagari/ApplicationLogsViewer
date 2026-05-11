@@ -471,21 +471,30 @@
             }
             tr.innerHTML = COLUMNS.map(c => {
                 const cell = c.get(e, term);
-                const titlePlain = c.key === "LogMessage"
+                // Always store the full (untruncated) plain-text value on the cell so the
+                // modal can show the entire content — even when the rendered cell is HTML
+                // (e.g. severity badge) or ellipsised.
+                const plain = c.key === "LogMessage"
                     ? String(e.logMessage ?? "")
-                    : (c.get(e) ? String(c.get(e)).replace(/<[^>]+>/g, "") : "");
-                return `<td data-col="${c.key}" title="${xla.esc(titlePlain)}">${cell ?? ""}</td>`;
+                    : extractPlain(c.get(e));
+                return `<td data-col="${c.key}" data-full="${xla.esc(plain)}" title="${xla.esc(plain)}">${cell ?? ""}</td>`;
             }).join("");
-            tr.addEventListener("click", () => selectRow(e.index, tr));
+
+            // Single delegated handler: clicking ANY cell selects the row AND opens the
+            // detail modal with that column's full content. This is what the user asked for:
+            // "popup on grid columns to show entire message without content missing".
+            tr.addEventListener("click", (ev) => {
+                selectRow(e.index, tr);
+                const td = ev.target.closest("td[data-col]");
+                if (!td) return;
+                const col = td.dataset.col;
+                const colMeta = COLUMNS.find(c => c.key === col);
+                const label = (colMeta && colMeta.label) || col;
+                openCellModal(label, td.dataset.full || "");
+            });
+            // Cosmetic flag so CSS can give the Message column extra hinting (cursor, underline)
             const msgTd = tr.querySelector('td[data-col="LogMessage"]');
-            if (msgTd) {
-                msgTd.classList.add("log-grid-msg-cell");
-                msgTd.addEventListener("click", (ev) => {
-                    ev.stopPropagation();
-                    selectRow(e.index, tr);
-                    openMessageModal(e.logMessage || "");
-                });
-            }
+            if (msgTd) msgTd.classList.add("log-grid-msg-cell");
             body.appendChild(tr);
         });
 
@@ -499,12 +508,24 @@
         }
     }
 
-    function openMessageModal(text) {
-        const bodyEl = $("messageModalBody");
+    function openMessageModal(text) { openCellModal("Log message", text); }
+
+    /** Opens the existing #messageModal for any column's full content. */
+    function openCellModal(title, text) {
+        const labelEl = $("messageModalLabel");
+        const bodyEl  = $("messageModalBody");
         const modalEl = $("messageModal");
         if (!bodyEl || !modalEl || !window.bootstrap) return;
-        bodyEl.textContent = text && text.trim() ? text : "(empty message)";
+        if (labelEl) labelEl.textContent = title || "Log details";
+        bodyEl.textContent = (text && String(text).length > 0) ? String(text) : "(empty)";
         bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    /** Strips HTML tags from a value (cells may contain badges / mark tags) to get plain text. */
+    function extractPlain(value) {
+        if (value == null) return "";
+        const s = String(value);
+        return s.indexOf("<") >= 0 ? s.replace(/<[^>]+>/g, "") : s;
     }
 
     function selectRow(idx, tr) {

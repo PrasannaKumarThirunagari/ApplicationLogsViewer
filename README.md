@@ -109,9 +109,14 @@ Edit `src/XmlLogAnalyzer.Web/appsettings.json`:
 
 ```json
 "XmlLogAnalyzer": {
-  "AllowedRoots": [ "C:\\Logs", "C:\\Temp", "C:\\Users" ],
-  "ForbiddenPaths": [ "C:\\Windows", "C:\\Program Files", "..." ],
+  "AllowedRoots":      [ "C:\\Logs", "C:\\Temp", "C:\\Users" ],
+  "ForbiddenPaths":    [ "C:\\Windows", "C:\\Program Files", "..." ],
   "AllowedExtensions": [ ".xml", ".log", ".txt" ],
+
+  "TextLogRoots":      [ "C:\\Apps\\TextLogs" ],
+  "TextLogExtensions": [ ".log", ".txt" ],
+  "TextLogChunkThresholdBytes": 1048576,
+
   "MaxFileSizeBytes": 1073741824,
   "CacheSlidingMinutes": 15,
   "FavoritesMax": 50,
@@ -120,6 +125,9 @@ Edit `src/XmlLogAnalyzer.Web/appsettings.json`:
   "RecursiveByDefault": true
 }
 ```
+
+`AllowedRoots` and `TextLogRoots` are **independent allow-lists**. The Explorer tab can only
+read files under `AllowedRoots`; the Text Logs tab can only read files under `TextLogRoots`.
 
 ## Run locally
 
@@ -161,6 +169,26 @@ You can drop the included sample logs (`samples/*.xml`) into one of the `Allowed
 
 The bundled `web.config` is already wired for in-process hosting via `AspNetCoreModuleV2`.
 
+## Text Logs tab
+
+A second tab handles plain-text application logs in the form:
+
+    2026-05-10 20:24:26:46:114  -4:00 [ERR] Could not sync settings
+
+The parser:
+
+* Reads files line-by-line streamingly (constant memory, large files OK).
+* Recognises lines that start with a timestamp; treats anything else as a continuation
+  (e.g. stack trace frames append to the previous entry's message).
+* Extracts **Date**, **Time**, **Seconds**, **Severity Level**, **Timezone**, **Message**
+  as separate columns so the grid can sort / filter by any of them — including
+  "show every entry where Seconds = 14".
+* Normalises severity codes (`ERR`, `ERROR`, `WRN`, `WARN`, `INF`, `INFO`, `DBG`, `TRC`,
+  `FTL`, etc.) into Error / Warning / Info / Debug for consistent colour coding.
+
+The newest entries (latest by parsed timestamp) appear first by default, matching the
+XML side.
+
 ## API surface (selected)
 
 | Method | Route                          | Purpose                                |
@@ -177,7 +205,11 @@ The bundled `web.config` is already wired for in-process hosting via `AspNetCore
 | GET    | `/api/logs/entry/json`         | JSON conversion                        |
 | POST   | `/api/logs/refresh`            | Invalidate cache for a file            |
 | POST   | `/api/logs/export/csv`         | Export filtered rows to CSV            |
-| POST   | `/api/logs/parse`              | Parse pasted XML (body `{ "xml": "..." }`, capped by `MaxPageSize`) |
+| GET    | `/api/text-logs/roots`         | Configured text-log root folders       |
+| GET    | `/api/text-logs/files`         | Text-log files under a folder          |
+| POST   | `/api/text-logs/query?path=...`| Filter / sort / paginate text-log entries |
+| GET    | `/api/text-logs/stats?path=...`| Text-log dashboard summary             |
+| POST   | `/api/text-logs/refresh`       | Invalidate text-log cache for a file   |
 
 ## Performance recommendations
 

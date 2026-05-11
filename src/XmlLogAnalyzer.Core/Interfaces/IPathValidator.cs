@@ -11,4 +11,10 @@ public interface IPathValidator
     string ValidateFile(string path);
 
     bool IsExtensionAllowed(string path);
+
+    // ----- Text-log variants: validated against the TextLogRoots / TextLogExtensions
+    // configured under XmlLogAnalyzer.TextLogRoots in appsettings.
+    string ValidateTextLogFolder(string path);
+    string ValidateTextLogFile(string path);
+    bool IsTextLogExtensionAllowed(string path);
 }

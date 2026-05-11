@@ -14,6 +14,10 @@ public static class DependencyInjection
         services.AddSingleton<IXmlLogParser, XmlLogParser>();
         services.AddSingleton<ILogQueryService, LogQueryService>();
         services.AddSingleton<IUserPreferencesService, UserPreferencesService>();
+
+        // Text-log feature (plain-text application logs)
+        services.AddSingleton<ITextLogParser, TextLogParser>();
+        services.AddSingleton<ITextLogQueryService, TextLogQueryService>();
         return services;
     }
 }
